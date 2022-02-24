@@ -4,6 +4,10 @@ Create lookup table.
 """
 
 import os
+
+import numpy as np
+import pandas as pd
+
 import ons.config as cf
 import ons.helpers as hr
 
@@ -84,9 +88,15 @@ def read_rural_urban():
     fp = os.path.join(bucket, path, file)
     df = hr.read_csv(fp).rename(columns=columns)
 
+    urban_codes = ["A1", "B1", "C1", "C2", "1", "2", "3", "4", "5"]
+    is_urban = df.rural_urban_code.isin(urban_codes)
+    df["is_urban"] = np.where(is_urban, 1, 0)
+
     # remove country prefix
     df["rural_urban_name"] = df.rural_urban_name.str.replace(
-        r"\([\w/]*\)", "", regex=True,
+        r"\([\w/]*\)",
+        "",
+        regex=True,
     ).str.strip()
 
     return df
@@ -97,11 +107,16 @@ def main(**kwargs):
     base = read_base(**kwargs)
     for var_adder in var_adders:
         base = base.merge(var_adder(), how="left", validate="m:1")
+
+    # cleanup
+    # convert strings to lowercase to ensure consistent capitalisation
+    cols = base.select_dtypes("object").columns
+    base[cols] = base[cols].apply(lambda x: x.str.lower())
     base = base.sort_index(axis=1)
 
     bucket = cf.AWS_BUCKET
-    path = 'clean'
-    file = 'lookup.csv'
+    path = "clean"
+    file = "lookup.csv"
     fp = os.path.join(bucket, path, file)
     hr.write_csv(base, fp, verbose=True)
     return base
@@ -109,11 +124,3 @@ def main(**kwargs):
 
 if __name__ == "__main__":
     main()
-    # filename = "region_lookup_table.parquet"
-    # filepath = os.path.join(config.AWS_BUCKET, filename)
-    # try:
-    #     regions = hr.read_parquet(filepath)
-    # except FileNotFoundError:
-    #     regions = _make_region_lookup_table()
-    # regions = regions.rename(columns={"pcsector": "postcode"})
-    # df = df.merge(regions, how="left", on="postcode", validate="m:1")
