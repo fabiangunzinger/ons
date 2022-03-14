@@ -89,8 +89,7 @@ def read_rural_urban():
     df = hr.read_csv(fp).rename(columns=columns)
 
     urban_codes = ["A1", "B1", "C1", "C2", "1", "2", "3", "4", "5"]
-    is_urban = df.rural_urban_code.isin(urban_codes)
-    df["is_urban"] = np.where(is_urban, 1, 0)
+    df['is_urban'] = df.rural_urban_code.isin(urban_codes)
 
     # remove country prefix
     df["rural_urban_name"] = df.rural_urban_name.str.replace(
