@@ -9,7 +9,7 @@ import platform
 
 import pandas as pd
 
-from ons import config
+from src import config
 
 
 
