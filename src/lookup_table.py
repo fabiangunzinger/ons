@@ -108,26 +108,19 @@ def main(**kwargs):
         base = base.merge(var_adder(), how="left", validate="m:1")
 
 
-    bucket = cf.AWS_BUCKET
-    path = "clean"
-    file = "lookup.csv"
-    fp = os.path.join(bucket, path, file)
-    hr.write_csv(base, fp, verbose=True)
-
-    print(base.info())
-
     # cleanup
     # convert strings to lowercase to ensure consistent capitalisation
     cols = base.select_dtypes("object").columns
     base[cols] = base[cols].apply(lambda x: x.str.lower())
     base = base.sort_index(axis=1)
-    return base
 
     bucket = cf.AWS_BUCKET
     path = "clean"
     file = "lookup.csv"
     fp = os.path.join(bucket, path, file)
     hr.write_csv(base, fp, verbose=True)
+
+    print(base)
 
 
 if __name__ == "__main__":
